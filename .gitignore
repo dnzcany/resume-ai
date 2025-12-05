@@ -1,0 +1,27 @@
+# PYTHON
+__pycache__/
+*.pyc
+backend/__pycache__/
+backend/**/*.pyc
+backend/venv/
+
+# NODE / NEXT.JS / ELECTRON
+frontend/node_modules/
+frontend/.next/
+desktop/node_modules/
+desktop/dist/
+
+# ENV FILES 
+.env
+.env.local
+frontend/.env.local
+
+# LOGS
+*.log
+
+# OS FILES
+.DS_Store
+Thumbs.db
+
+# DOCKER OPTIONAL
+docker-compose.override.yml

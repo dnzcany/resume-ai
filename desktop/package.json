@@ -1,0 +1,52 @@
+{
+  "name": "resume-checker-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "description": "Resume AI Desktop App",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "prebuild": "cd ../frontend && npm install && npm run build",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.resumechecker.app",
+    "productName": "Resume Checker AI",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend"
+      },
+      {
+        "from": "../frontend/.next/standalone",
+        "to": "frontend"
+      },
+      {
+        "from": "../frontend/.next/static",
+        "to": "frontend/.next/static"
+      },
+      {
+        "from": "../frontend/public",
+        "to": "frontend/public"
+      }
+    ],
+    "files": [
+      "**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/*.{map,ts}",
+      "!**/*.log"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    }
+  }
+}

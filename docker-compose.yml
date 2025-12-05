@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    container_name: cvreview-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    networks:
+      - cvnet
+
+  frontend:
+    build: ./frontend
+    container_name: cvreview-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - cvnet
+
+networks:
+  cvnet:
