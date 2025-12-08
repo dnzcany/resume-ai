@@ -1,5 +1,4 @@
 
-
 # RESUME AI – Multi-AI Powered Resume Analyzer
 
 <p align="center"> 
@@ -14,11 +13,18 @@
 
 </p>
 
+
+
 Do you want to have your resume analyzed by multiple AI systems and get detailed insights on each section — including your strengths, missing elements, and how you can further improve your resume? And do you also want to save these results so you can review them anytime later? 
 
 Or you just want to see an example of modern full-stack development with AI integrations?
 
 I built ResumeAI specifically for you — to help you do exactly that.
+
+<p align="center">
+  <img src="./public/Animation11.gif" width="700" />
+</p>
+
 
 
 
