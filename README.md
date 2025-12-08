@@ -11,6 +11,8 @@
 
 <img src="https://img.shields.io/badge/Desktop-Electron-gray?style=for-the-badge&logo=electron" /> 
 
+<img src="https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white" /> 
+
 </p>
 
 
