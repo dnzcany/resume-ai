@@ -4,6 +4,7 @@ __pycache__/
 backend/__pycache__/
 backend/**/*.pyc
 backend/venv/
+temp_uploads/
 
 # NODE / NEXT.JS / ELECTRON
 frontend/node_modules/
@@ -25,3 +26,15 @@ Thumbs.db
 
 # DOCKER OPTIONAL
 docker-compose.override.yml
+
+# TERRAFORM
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+terraform/*.tfplan
+
+# AWS
+.aws/
+*.pem

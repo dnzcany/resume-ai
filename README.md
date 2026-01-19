@@ -11,7 +11,9 @@
 
 <img src="https://img.shields.io/badge/Desktop-Electron-gray?style=for-the-badge&logo=electron" /> 
 
-<img src="https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white" /> 
+<img src="https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white" />
+
+<img src="https://img.shields.io/badge/AWS-ECS%20%7C%20Fargate%20%7C%20Terraform-orange?style=for-the-badge&logo=amazonaws" />
 
 </p>
 
@@ -184,8 +186,21 @@ If you want to use Local LLMs, install curl inside backend container once.
     # Build executable
     npm run build
 
-    # Output: desktop/dist/Resume Checker AI       
+    # Output: desktop/dist/Resume Checker AI
     Setup.exe
+
+### Method 4: AWS Cloud Deployment
+
+Deploy to AWS with Terraform for production use:
+
+    # See detailed guide
+    [AWS Deployment Guide](README-AWS.md)
+
+**Features:**
+- Serverless with ECS Fargate
+- Auto-scaling with Load Balancer
+- Infrastructure as Code with Terraform
+- ~$25/month hosting cost
 
 ## Contributing
 

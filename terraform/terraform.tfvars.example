@@ -1,0 +1,18 @@
+# Resume AI - Terraform Variables Example
+# Bu dosya GIT'e gider (örnek olarak)
+# Gerçek değerleri terraform.tfvars dosyasına yaz (GIT'e GİTMEZ!)
+
+# AWS Region
+aws_region = "us-east-1"
+
+# Project configuration
+project_name = "resume-ai"
+environment  = "production"
+
+# API Keys - OPTIONAL (users can enter keys in frontend UI)
+# You can use placeholder values - they won't be used unless you want fallback keys
+openai_api_key = "PLACEHOLDER_OPENAI_KEY"
+gemini_api_key = "PLACEHOLDER_GEMINI_KEY"
+
+# Fargate deployment
+enable_fargate = true
