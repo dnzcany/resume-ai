@@ -100,34 +100,6 @@ terraform output frontend_url
 # Visit this URL in your browser
 ```
 
-## Screenshots for Portfolio
-
-Take these screenshots from AWS Console:
-
-### 1. ECS Cluster
-- Navigate to: **ECS → Clusters → resume-ai-cluster**
-- Screenshot: Cluster overview showing 2 running services
-
-### 2. Running Tasks
-- Navigate to: **ECS → Clusters → resume-ai-cluster → Tasks**
-- Screenshot: Both frontend and backend tasks running
-
-### 3. Load Balancer
-- Navigate to: **EC2 → Load Balancers → resume-ai-alb**
-- Screenshot: ALB with target groups and health checks
-
-### 4. ECR Repositories
-- Navigate to: **ECR → Repositories**
-- Screenshot: Both resume-ai-backend and resume-ai-frontend repos with images
-
-### 5. CloudWatch Logs
-- Navigate to: **CloudWatch → Log groups → /ecs/resume-ai-backend**
-- Screenshot: Live container logs
-
-### 6. Architecture Diagram (Optional)
-- Navigate to: **VPC → Your VPCs → resume-ai-vpc**
-- Screenshot: VPC resource map showing subnets, ALB, ECS tasks
-
 ## Cost Estimate
 
 | Service | Monthly Cost |
