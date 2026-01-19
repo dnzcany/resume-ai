@@ -183,13 +183,6 @@ terraform output    # Show output values
 4. AWS creates resources
 5. Terraform saves state in `.tfstate` file
 
-## 🔒 Security Notes
-
-- Never commit `terraform.tfvars`
-- Never commit `.tfstate` files
-- API keys are marked `sensitive = true`
-- Use IAM roles with least privilege
-
 ## 🆘 Troubleshooting
 
 ### "No AWS credentials found"
@@ -222,7 +215,7 @@ Common issues:
 
 ## 🎓 Learning Notes
 
-This project helped me learn:
+This this section of the project helped me learn:
 - Infrastructure as Code with Terraform
 - AWS ECS Fargate (serverless containers)
 - Load balancing and networking in AWS
