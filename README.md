@@ -62,6 +62,10 @@ You can use it to practice building AI systems (local or cloud-based) or take it
 
 - Multiple Deployment Options: Web app, Docker, or Desktop App (Electron)
 
+## Recently Added :sparkles:
+- AWS Deployment
+- Applicant Tracking System Analysis
+
 ## Privacy & Data Security
 
 - ResumeAI does not store any data on servers.
