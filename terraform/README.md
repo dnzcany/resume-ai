@@ -2,14 +2,14 @@
 
 Infrastructure as Code for deploying Resume AI to AWS.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - AWS account with CLI configured
 - Terraform >= 1.0 installed
 - Docker installed
 - OpenAI and/or Gemini API keys
 
-## 🏗️ Infrastructure Components
+## Infrastructure Components
 
 **Fully Deployed** - Production Ready ✅
 
@@ -103,7 +103,7 @@ terraform output
 
 You'll see your infrastructure URLs and details.
 
-## 📦 What Gets Created
+## What Gets Created
 
 When you run `terraform apply`, **27 AWS resources** are created:
 
