@@ -2,6 +2,8 @@
 from fastapi import FastAPI, UploadFile, File, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import uuid
+from pathlib import Path
 from core.parser import extract_text
 from core.analyzer import analyze_resume_multi
 
@@ -24,14 +26,27 @@ async def analyze_resume_endpoint(
     sector: str = Form(...),
     experience_level: str = Form(...),
     provider: str = Form(...),                   #
-    api_key: str | None = Form(default=None),    # for openAI/Gemini 
+    api_key: str | None = Form(default=None),    # for openAI/Gemini
     file: UploadFile = File(...),
 ):
-    temp_path = f"temp_{file.filename}"
+    # SECURITY FIX: Use UUID to prevent path traversal attacks
+    original_extension = os.path.splitext(file.filename)[1]
+    secure_filename = f"temp_{uuid.uuid4()}{original_extension}"
+    temp_path = Path("temp_uploads") / secure_filename
+
+    # Create temp directory if it doesn't exist
+    temp_path.parent.mkdir(exist_ok=True)
+
+    # Verify the resolved path is within our temp directory (defense in depth)
+    temp_dir = Path("temp_uploads").resolve()
+    if not temp_path.resolve().is_relative_to(temp_dir):
+        return {"status": "error", "message": "Invalid file path"}
+
+    # Write uploaded file securely
     with open(temp_path, "wb") as f:
         f.write(await file.read())
 
-    text = extract_text(temp_path)
+    text = extract_text(str(temp_path))
     os.remove(temp_path)
 
     try:

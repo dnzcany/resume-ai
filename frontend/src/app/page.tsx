@@ -8,12 +8,7 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { storePDF, getPDF, generatePDFId } from "./pdfStorage";
 
-// ========================================
-// BACKEND CONNECTION CONFIGURATION
-// ========================================
-// CRITICAL: Use 127.0.0.1 instead of localhost for maximum compatibility
-// Works in: Browser, Electron EXE, Docker, all environments
-// NOTE: Using port 8002 due to zombie connections on port 8000
+
 
 
 // In Docker: use NEXT_PUBLIC_API_URL
@@ -766,10 +761,11 @@ export default function Home() {
           </section>
         </>
       ) : !loading && sections.length > 0 ? (
-        <>
-          {/* Split Layout: PDF Preview (Left) + Analysis Results (Right) */}
-          {/* PDF Preview - Left side (or top on mobile) */}
-          <section className="w-full lg:w-1/2 flex flex-col items-start space-y-4 lg:pr-6 relative">
+        <div className="w-full flex flex-col">
+          {/* Top Row: PDF Preview (Left) + Analysis Results (Right) */}
+          <div className="flex flex-col lg:flex-row w-full gap-6 lg:gap-0">
+            {/* PDF Preview - Left side (or top on mobile) */}
+            <section className="w-full lg:w-1/2 flex flex-col items-start space-y-4 lg:pr-6 relative">
             {pdfUrl && (
               <div className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 w-full border border-gray-100 animate-fadeIn">
                 <div className="flex justify-between items-center mb-4">
@@ -803,11 +799,20 @@ export default function Home() {
           </section>
 
           {/* Analysis Results - Right side (or bottom on mobile) */}
+          {(() => {
+            // Filter out ATS section from main card view (it has its own card below)
+            const displaySections = sections.filter(s => {
+              const title = s.title.toLowerCase();
+              return !title.includes("ats") && !title.includes("applicant tracking");
+            });
+            const currentSection = displaySections[currentIndex] || sections[0];
+
+            return (
           <section className="w-full lg:w-1/2 flex flex-col items-start space-y-4 lg:pl-6 relative">
             <div className="bg-white shadow-xl rounded-2xl p-6 w-full border border-gray-100 animate-fadeIn relative">
               {/* Re-analyze button */}
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif leading-tight">{sections[currentIndex].title}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif leading-tight">{currentSection.title}</h2>
                 <button
                   onClick={handleReAnalyze}
                   className="cursor-pointer transition-all bg-blue-500 text-white px-4 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px] font-semibold text-sm whitespace-nowrap ml-4"
@@ -819,7 +824,6 @@ export default function Home() {
 
               {/* Score display for Overall Evaluation */}
               {(() => {
-                const currentSection = sections[currentIndex];
                 const isOverallEvaluation = currentSection.title.toLowerCase().includes("overall evaluation");
                 
                 if (!isOverallEvaluation) return null;
@@ -1043,26 +1047,25 @@ export default function Home() {
                 );
               })()}
               
-              <div className="prose prose-p:my-2 prose-strong:font-semibold prose-h3:my-3 prose-li:my-0 whitespace-pre-wrap max-h-[60vh] overflow-y-auto leading-relaxed">
+              <div className="prose prose-p:my-0 prose-strong:font-semibold prose-h3:my-2 prose-li:my-0 max-h-[60vh] overflow-y-auto leading-relaxed [&>p]:mb-1">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    strong: ({ children }) => (
-                      <strong className="font-bold text-gray-900">{children}</strong>
-                    ),
+                    strong: ({ children }) => {
+                      const text = String(children || '');
+                      const isHeading = /^(Strengths?:?|Weaknesses?\/?Missing:?|Suggestions?:?|Example:?)$/i.test(text);
+                      return (
+                        <strong className={`font-bold text-gray-900 ${isHeading ? 'block mt-3 mb-0' : ''}`}>
+                          {children}
+                        </strong>
+                      );
+                    },
                     h3: ({ children }) => (
                       <h3 className="text-base font-bold text-gray-900 mt-4 mb-2 pb-1 border-b border-gray-200 font-serif">{children}</h3>
                     ),
                     p: ({ children }) => {
-                      // Check if paragraph starts with bold text (like "**Strengths:**")
-                      const text = typeof children === 'string' ? children : 
-                        (Array.isArray(children) ? children.map(c => 
-                          typeof c === 'string' ? c : (typeof c === 'object' && c !== null && 'props' in c ? String(c.props?.children || '') : String(c))
-                        ).join('') : String(children));
-                      const isBoldHeading = /^\*\*(Strengths?:|Weaknesses\/?Missing:?|Suggestions?:|Example:?)\*\*/.test(text);
-                      
                       return (
-                        <p className={`leading-relaxed text-gray-700 font-sans text-[15px] ${isBoldHeading ? 'mb-1 mt-3' : 'my-2'}`}>
+                        <p className="leading-relaxed text-gray-700 font-sans text-[15px] my-0">
                           {children}
                         </p>
                       );
@@ -1073,14 +1076,22 @@ export default function Home() {
                   }}
                 >
                   {(() => {
-                    // Clean content: remove extra whitespace and empty paragraphs
-                    const cleanContent = sections[currentIndex].content
+                    const cleanContent = currentSection.content
+                      // Remove duplicate Example headings (Example followed by Example:)
+                      .replace(/\*\*Example:?\*\*\s*\n+\s*\*\*Example:?\*\*/gi, "**Example:**")
+                      .replace(/\*\*Example:?\*\*\s*\n+Example:?\s*/gi, "**Example:**\n")
+
+                      .replace(/\*\*(Strengths?:?)\*\*\s*\n+\s*\*\*\1\*\*/gi, "**$1**")
+                      .replace(/\*\*(Weaknesses?\/?Missing:?)\*\*\s*\n+\s*\*\*\1\*\*/gi, "**$1**")
+                      .replace(/\*\*(Suggestions?:?)\*\*\s*\n+\s*\*\*\1\*\*/gi, "**$1**")
                       // Remove extra newlines after bold headings (Strengths:, Weaknesses:, etc.)
-                      .replace(/\*\*(Strengths?:|Weaknesses\/?Missing:?|Suggestions?:|Example:?)\*\*\s*\n+/gi, "**$1** ")
-                      // Replace 3+ newlines with 2
-                      .replace(/\n{3,}/g, "\n\n")
-                      // Replace multiple double newlines
-                      .replace(/\n\n\n+/g, "\n\n")
+                      .replace(/\*\*(Strengths?:|Weaknesses\/?Missing:?|Suggestions?:|Example:?)\*\*\s*\n+/gi, "**$1**\n")
+                      // Remove multiple consecutive newlines (3 or more) with single newline
+                      .replace(/\n{3,}/g, "\n")
+                      // Remove double newlines (2 consecutive) with single newline for tighter spacing
+                      .replace(/\n\n/g, "\n")
+                      // Clean up any remaining excessive whitespace
+                      .replace(/[ \t]+\n/g, "\n")
                       .trim();
                     return cleanContent;
                   })()}
@@ -1096,7 +1107,7 @@ export default function Home() {
                     ← Back
                   </button>
                 )}
-                {currentIndex < sections.length - 1 && (
+                {currentIndex < displaySections.length - 1 && (
                   <button
                     className="cursor-pointer transition-all bg-blue-500 text-white px-4 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
                     onClick={() => setCurrentIndex(currentIndex + 1)}
@@ -1106,7 +1117,7 @@ export default function Home() {
                 )}
               </div>
 
-              {currentIndex === sections.length - 1 && (
+              {currentIndex === displaySections.length - 1 && (
                 <div className="mt-8 pt-4 border-t text-center">
                   <p className="text-gray-700 mb-4">Save your AI feedback report:</p>
                   <div className="flex justify-center gap-3 flex-wrap">
@@ -1127,7 +1138,288 @@ export default function Home() {
               )}
             </div>
           </section>
-        </>
+            );
+          })()}
+          </div>
+
+          {/* ATS Compatibility Card - Full width horizontal card below the main sections */}
+          {(() => {
+            const atsSection = sections.find(s => {
+              const title = s.title.toLowerCase();
+              return title.includes("ats") ||
+                     title.includes("applicant tracking") ||
+                     title.includes("applicant-tracking") ||
+                     title.includes("compatibility check");
+            });
+
+            // If no ATS section exists yet (old analysis), show a placeholder
+            if (!atsSection) {
+              return (
+                <motion.section
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="w-full mt-6"
+                >
+                  <div className="bg-white shadow-xl rounded-2xl p-6 border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                          <span className="text-3xl">🤖</span>
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-900">ATS Compatibility Check</h2>
+                          <p className="text-sm text-gray-500">Applicant Tracking System Analysis</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-gray-400 text-sm">Run a new analysis to see ATS score</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                      <p className="text-sm text-yellow-700 flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>This analysis was run before ATS checking was added. Click <strong>Re-analyze</strong> to get your ATS compatibility score.</span>
+                      </p>
+                    </div>
+                  </div>
+                </motion.section>
+              );
+            }
+
+            // Extract ATS score
+            let atsScore: number | null = null;
+            const content = atsSection.content;
+
+            const atsScoreMatch = content.match(/ats\s*score[^0-9]*([0-9]{1,3})\s*\/\s*100/i);
+            if (atsScoreMatch) {
+              const extractedScore = parseInt(atsScoreMatch[1], 10);
+              if (extractedScore >= 0 && extractedScore <= 100) {
+                atsScore = extractedScore;
+              }
+            }
+
+            if (atsScore === null) {
+              const fallbackMatch = content.match(/([0-9]{1,3})\s*\/\s*100/);
+              if (fallbackMatch) {
+                const num = parseInt(fallbackMatch[1], 10);
+                if (num >= 0 && num <= 100) atsScore = num;
+              }
+            }
+
+            const atsScoreValue = atsScore !== null ? atsScore : 0;
+
+            // Extract strengths and weaknesses for quick view
+            const strengthsMatch = content.match(/\*\*Strengths?:?\*\*\s*([\s\S]*?)(?=\*\*Weaknesses?|$)/i);
+            const weaknessesMatch = content.match(/\*\*Weaknesses?\/?Missing:?\*\*\s*([\s\S]*?)(?=\*\*Suggestions?|$)/i);
+            const suggestionsMatch = content.match(/\*\*Suggestions?:?\*\*\s*([\s\S]*?)(?=\*\*Example|$)/i);
+
+            const extractBullets = (text: string | undefined) => {
+              if (!text) return [];
+              return text
+                .split('\n')
+                .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
+                .slice(0, 3)
+                .map(line => line.replace(/^[-•]\s*/, '').trim());
+            };
+
+            const strengths = extractBullets(strengthsMatch?.[1]);
+            const weaknesses = extractBullets(weaknessesMatch?.[1]);
+            const suggestions = extractBullets(suggestionsMatch?.[1]);
+
+            const getScoreColor = (score: number) => {
+              if (score >= 80) return { gradient: 'from-green-500 to-emerald-600', bar: 'bg-gradient-to-r from-green-400 to-emerald-500', text: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+              if (score >= 60) return { gradient: 'from-yellow-400 to-amber-500', bar: 'bg-gradient-to-r from-yellow-400 to-amber-500', text: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
+              if (score >= 40) return { gradient: 'from-orange-500 to-red-500', bar: 'bg-gradient-to-r from-orange-400 to-red-500', text: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
+              return { gradient: 'from-red-500 to-pink-600', bar: 'bg-gradient-to-r from-red-500 to-pink-600', text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
+            };
+
+            const colors = getScoreColor(atsScoreValue);
+
+            return (
+              <motion.section
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="w-full mt-8"
+              >
+                <div className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+                  {/* Top Header Section */}
+                  <div className="relative bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50">
+                    <div className="px-8 py-6">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        {/* Left: Title and Badge */}
+                        <div className="flex items-center gap-5">
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">ATS Compatibility</h2>
+                            <p className="text-gray-500 text-sm mt-0.5">Applicant Tracking System Analysis</p>
+                          </div>
+                        </div>
+
+                        {/* Right: Score Circle */}
+                        <div className="flex items-center gap-6">
+                          <div className="relative">
+                            <svg className="w-28 h-28 transform -rotate-90">
+                              <circle
+                                cx="56"
+                                cy="56"
+                                r="48"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-gray-200"
+                              />
+                              <motion.circle
+                                cx="56"
+                                cy="56"
+                                r="48"
+                                stroke="url(#scoreGradient)"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeLinecap="round"
+                                strokeDasharray={`${2 * Math.PI * 48}`}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 48 }}
+                                animate={{ strokeDashoffset: 2 * Math.PI * 48 * (1 - atsScoreValue / 100) }}
+                                transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
+                              />
+                              <defs>
+                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                  <stop offset="0%" stopColor={atsScoreValue >= 70 ? '#22c55e' : atsScoreValue >= 50 ? '#eab308' : '#ef4444'} />
+                                  <stop offset="100%" stopColor={atsScoreValue >= 70 ? '#10b981' : atsScoreValue >= 50 ? '#f59e0b' : '#dc2626'} />
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <motion.span
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.5, type: 'spring' }}
+                                className="text-3xl font-bold text-gray-900"
+                              >
+                                {atsScoreValue}
+                              </motion.span>
+                              <span className="text-xs text-gray-500 font-medium">out of 100</span>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className={`px-4 py-2 rounded-xl ${
+                            atsScoreValue >= 80 ? 'bg-emerald-100 border border-emerald-200' :
+                            atsScoreValue >= 60 ? 'bg-amber-100 border border-amber-200' :
+                            'bg-red-100 border border-red-200'
+                          }`}>
+                            <span className={`text-sm font-semibold ${
+                              atsScoreValue >= 80 ? 'text-emerald-700' :
+                              atsScoreValue >= 60 ? 'text-amber-700' :
+                              'text-red-700'
+                            }`}>
+                              {atsScoreValue >= 80 ? 'Excellent' : atsScoreValue >= 60 ? 'Needs Work' : 'Low Score'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info Banner */}
+                  <div className="px-8 py-4 bg-blue-50 border-y border-blue-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        <span className="text-gray-900 font-medium">90%+ of companies</span> use ATS to filter resumes. A higher score means better chances of reaching human recruiters.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Three Columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                    {/* Strengths */}
+                    <div className="p-6 bg-gradient-to-b from-white to-emerald-50/30">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <h4 className="font-semibold text-gray-900">Strengths</h4>
+                      </div>
+                      <ul className="space-y-3">
+                        {strengths.length > 0 ? strengths.map((item, i) => (
+                          <li key={i} className="flex items-start gap-3 group">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
+                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{item}</span>
+                          </li>
+                        )) : (
+                          <li className="text-sm text-gray-400 italic">No specific strengths identified</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Issues */}
+                    <div className="p-6 bg-gradient-to-b from-white to-amber-50/30">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        </div>
+                        <h4 className="font-semibold text-gray-900">Issues Found</h4>
+                      </div>
+                      <ul className="space-y-3">
+                        {weaknesses.length > 0 ? weaknesses.map((item, i) => (
+                          <li key={i} className="flex items-start gap-3 group">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 flex-shrink-0"></span>
+                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{item}</span>
+                          </li>
+                        )) : (
+                          <li className="text-sm text-gray-400 italic">No issues detected</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Tips */}
+                    <div className="p-6 bg-gradient-to-b from-white to-blue-50/30">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        </div>
+                        <h4 className="font-semibold text-gray-900">Quick Tips</h4>
+                      </div>
+                      <ul className="space-y-3">
+                        {suggestions.length > 0 ? suggestions.map((item, i) => (
+                          <li key={i} className="flex items-start gap-3 group">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{item}</span>
+                          </li>
+                        )) : (
+                          <li className="text-sm text-gray-400 italic">No specific tips available</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </motion.section>
+            );
+          })()}
+        </div>
       ) : null}
 
       {/* Loading state */}
