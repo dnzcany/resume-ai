@@ -26,7 +26,7 @@ Or you just want to see an example of modern full-stack development with AI inte
 I built ResumeAI specifically for you — to help you do exactly that.
 
 <p align="center">
-  <img src="./public/Animation11.gif" width="700" />
+  <img src="./public/Animation111.gif" width="700" />
 </p>
 
 
