@@ -192,9 +192,8 @@ If you want to use Local LLMs, install curl inside backend container once.
 ### Method 4: AWS Cloud Deployment
 
 Deploy to AWS with Terraform for production use:
-
-    # See detailed guide
-    [AWS Deployment Guide](README-AWS.md)
+  ### See detailed guide
+  [AWS Deployment Guide](README-AWS.md)
 
 **Features:**
 - Serverless with ECS Fargate
