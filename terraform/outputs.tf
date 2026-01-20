@@ -1,9 +1,3 @@
-# Resume AI - Terraform Outputs
-# terraform apply sonrası bunlar ekrana yazdırılır
-
-# ============================================
-# ECR Repositories
-# ============================================
 output "ecr_backend_repository_url" {
   description = "ECR repository URL for backend"
   value       = aws_ecr_repository.backend.repository_url
@@ -14,9 +8,6 @@ output "ecr_frontend_repository_url" {
   value       = aws_ecr_repository.frontend.repository_url
 }
 
-# ============================================
-# Application URLs
-# ============================================
 output "alb_dns_name" {
   description = "DNS name of the load balancer"
   value       = aws_lb.main.dns_name
@@ -37,9 +28,6 @@ output "backend_health_check_url" {
   value       = "http://${aws_lb.main.dns_name}:8000/ping"
 }
 
-# ============================================
-# Infrastructure Info
-# ============================================
 output "aws_region" {
   description = "AWS region used for deployment"
   value       = var.aws_region

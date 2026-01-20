@@ -1,4 +1,3 @@
-# Resume AI - AWS Infrastructure
 # Main Terraform configuration file
 
 # Terraform version and required providers
@@ -17,8 +16,6 @@ terraform {
 provider "aws" {
   region = var.aws_region  # AWS region (us-east-1, eu-west-1, etc.)
 
-  # Default tags applied to ALL resources
-  # Bu tag'ler her kaynağa otomatik eklenir
   default_tags {
     tags = {
       Project     = var.project_name
@@ -28,8 +25,6 @@ provider "aws" {
   }
 }
 
-# Data source to get available AWS availability zones
-# Bu bize region'daki mevcut AZ'leri verir (us-east-1a, us-east-1b, etc.)
 data "aws_availability_zones" "available" {
   state = "available"
 }
